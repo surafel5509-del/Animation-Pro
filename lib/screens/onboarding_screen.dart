@@ -57,7 +57,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     final strings = AppStrings.of(context);
     final colors = Theme.of(context).colorScheme;
-    final current = _pages[_page];
     return Scaffold(
       body: SafeArea(
         child: Center(
