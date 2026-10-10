@@ -24,9 +24,8 @@ class EditorController extends ChangeNotifier {
 
   int _currentFrameIndex = 0;
   int get currentFrameIndex => _currentFrameIndex;
-  AnimationFrame get currentFrame => _project.frames[
-        _currentFrameIndex.clamp(0, _project.frames.length - 1).toInt(),
-      ];
+  AnimationFrame get currentFrame =>
+      _project.frames[_currentFrameIndex.clamp(0, _project.frames.length - 1).toInt()];
 
   String _activeLayerId;
   String get activeLayerId => _activeLayerId;
