@@ -56,18 +56,26 @@ jobs:
           import pathlib, re, sys
           log = pathlib.Path(sys.argv[1]).read_text(errors="replace")
           clean = re.sub(r"\x1b\[[0-9;]*m", "", log)
+          status = int(sys.argv[3])
           with open(sys.argv[2], "a", encoding="utf-8") as summary:
-              summary.write("### flutter analyze\n\n```text\n" + clean[-12000:] + "\n```\n")
+              summary.write(f"### flutter analyze (exit code {status})\n\n```text\n" + clean[-12000:] + "\n```\n")
           lines = clean.splitlines()
           for line in lines:
-              if " • " in line:
+              if " • " in line and " info • " in line:
                   escaped = line.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
                   print(f"::notice title=flutter analyze::{escaped}")
-          if int(sys.argv[3]) != 0:
-              for line in lines[-80:]:
-                  if line.strip():
+          if status != 0:
+              diagnostics = [line for line in lines if re.search(r"\b(?:error|warning)\s+•", line)]
+              if diagnostics:
+                  for line in diagnostics[-50:]:
                       escaped = line.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
                       print(f"::error title=flutter analyze::{escaped}")
+              else:
+                  print(f"::error title=flutter analyze::Exited with code {status}; no warning/error diagnostic matched the captured output.")
+                  for line in lines[-20:]:
+                      if line.strip():
+                          escaped = line.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+                          print(f"::error title=flutter analyze::{escaped}")
           PY
           exit "$result"
 
