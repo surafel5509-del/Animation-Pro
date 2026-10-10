@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f5fa">
+  <title>AnimPro — frame by frame</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell" id="appShell">
+    <header class="topbar">
+      <div class="brand-lockup">
+        <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div class="brand-name">anim<span>pro</span></div>
+      </div>
+      <button class="project-back" id="openProjects" title="My projects">
+        <span class="back-arrow">‹</span><span class="back-label">Projects</span>
+      </button>
+      <div class="project-heading">
+        <button class="project-title" id="renameProject" title="Rename project">Morning, frame by frame <span class="edit-mark">✎</span></button>
+        <div class="project-subtitle"><span class="save-dot"></span> Saved locally <span class="metadata-divider">·</span> 1080 × 1080</div>
+      </div>
+      <div class="top-spacer"></div>
+      <div class="top-actions">
+        <button class="icon-button" id="undoButton" title="Undo (Ctrl+Z)" aria-label="Undo">↶</button>
+        <button class="icon-button" id="redoButton" title="Redo (Ctrl+Shift+Z)" aria-label="Redo">↷</button>
+        <span class="header-divider"></span>
+        <button class="icon-button inspector-toggle" id="showInspector" title="Layers and brush" aria-label="Layers and brush">☷</button>
+        <button class="icon-button theme-toggle" id="themeToggle" title="Switch theme" aria-label="Switch theme">☼</button>
+        <button class="button-primary export-top" id="openExport"><span class="export-icon">↗</span><span>Export</span></button>
+      </div>
+    </header>
+
+    <main class="workspace" id="workspace">
+      <aside class="tool-rail" aria-label="Drawing tools">
+        <div class="rail-label">TOOLS</div>
+        <div class="tool-stack" id="toolStack"></div>
+        <div class="rail-bottom">
+          <div class="current-color" id="railColor" title="Current color"></div>
+          <span>COLOR</span>
+        </div>
+      </aside>
+
+      <section class="editor-column">
+        <div class="canvas-toolbar">
+          <div class="canvas-meta">
+            <span class="meta-icon">▧</span>
+            <span>1080 × 1080</span>
+            <span class="meta-separator">·</span>
+            <span id="currentFrameMeta">Frame 05 / 08</span>
+          </div>
+          <div class="canvas-actions">
+            <button class="canvas-tool-toggle is-active" id="onionToggle" title="Onion skin"><span>◌</span><b>Onion</b></button>
+            <button class="canvas-tool-toggle" id="mirrorToggle" title="Mirror drawing"><span>◐</span><b>Mirror</b></button>
+            <button class="canvas-tool-toggle" id="gridToggle" title="Grid"><span>▦</span><b>Grid</b></button>
+            <span class="tiny-divider"></span>
+            <button class="zoom-button" id="zoomOut" title="Zoom out">−</button>
+            <button class="zoom-label" id="zoomReset" title="Reset zoom">100%</button>
+            <button class="zoom-button" id="zoomIn" title="Zoom in">+</button>
+            <button class="zoom-button rotate-button" id="rotateCanvas" title="Rotate canvas">↻</button>
+          </div>
+        </div>
+
+        <div class="stage" id="stage">
+          <div class="paper-wrap" id="paperWrap">
+            <canvas id="artboard" width="1080" height="1080" aria-label="Animation drawing canvas"></canvas>
+            <div class="paper-corner top-left"></div><div class="paper-corner top-right"></div>
+            <div class="paper-corner bottom-left"></div><div class="paper-corner bottom-right"></div>
+          </div>
+          <div class="stage-hint" id="stageHint"><span class="hint-dot"></span> DRAWING ON <b id="activeLayerLabel">Sprout</b></div>
+        </div>
+
+        <section class="timeline-panel" aria-label="Animation timeline">
+          <div class="timeline-toolbar">
+            <div class="transport-controls">
+              <button class="transport-button" id="previousFrame" title="Previous frame">|‹</button>
+              <button class="play-button" id="playButton" title="Play">▶</button>
+              <button class="transport-button" id="reverseButton" title="Play in reverse">◀</button>
+              <button class="transport-button loop-button is-active" id="loopToggle" title="Toggle loop">⟳</button>
+              <span class="fps-label">FPS</span>
+              <select id="fpsSelect" aria-label="Frames per second">
+                <option>6</option><option>8</option><option selected>12</option><option>15</option><option>24</option><option>30</option><option>60</option>
+              </select>
+              <span class="transport-divider"></span>
+              <span class="frame-count" id="frameCount">05 <span>/ 08</span></span>
+            </div>
+            <div class="frame-actions">
+              <button class="small-action" id="copyFrame" title="Copy frame">▢</button>
+              <button class="small-action" id="pasteFrame" title="Paste frame">▣</button>
+              <button class="small-action" id="duplicateFrame" title="Duplicate frame">⧉</button>
+              <button class="small-action add-frame" id="addFrame" title="Add blank frame">＋</button>
+              <button class="small-action" id="deleteFrame" title="Delete current frame">⌫</button>
+              <span class="hold-label">Hold</span>
+              <select class="hold-select" id="holdSelect" aria-label="Hold frames"><option value="1">1×</option><option value="2">2×</option><option value="3">3×</option><option value="4">4×</option><option value="5">5×</option><option value="6">6×</option></select>
+            </div>
+          </div>
+          <div class="frames-strip" id="framesStrip" aria-label="Frames"></div>
+        </section>
+      </section>
+
+      <aside class="inspector" id="inspector">
+        <div class="inspector-tabs">
+          <button class="inspector-tab is-active" data-tab="layersTab"><span class="tab-icon">▱</span> Layers</button>
+          <button class="inspector-tab" data-tab="brushTab"><span class="tab-icon">✎</span> Brush</button>
+        </div>
+        <section class="inspector-content" id="layersTab">
+          <div class="panel-heading"><div><h2>Layers</h2><p>Keep your scene organized</p></div><button class="square-button" id="addLayer" title="Add layer">＋</button></div>
+          <div class="layer-note">Drag to reorder · top layers render above</div>
+          <div class="layer-list" id="layerList"></div>
+          <div class="layer-properties">
+            <div class="property-row"><label for="layerOpacity">Opacity</label><span id="opacityValue">100%</span></div>
+            <input type="range" id="layerOpacity" min="0" max="100" value="100">
+            <div class="property-row blend-row"><label for="blendMode">Blend mode</label></div>
+            <select id="blendMode"><option value="source-over">Normal</option><option value="multiply">Multiply</option><option value="screen">Screen</option><option value="overlay">Overlay</option></select>
+          </div>
+          <div class="panel-footnote"><span class="footnote-icon">⌘</span> Layers are stored with your project.</div>
+        </section>
+        <section class="inspector-content hidden" id="brushTab">
+          <div class="panel-heading"><div><h2>Brush</h2><p>Make every mark yours</p></div><div class="brush-preview-dot" id="brushPreviewDot"></div></div>
+          <div class="field-label">Brush type</div>
+          <div class="brush-grid" id="brushGrid"></div>
+          <div class="brush-size-heading"><span>Size</span><strong><span id="brushSizeValue">7</span> px</strong></div>
+          <input type="range" id="brushSize" min="1" max="48" value="7">
+          <div class="size-track-labels"><span>Fine</span><span>Bold</span></div>
+          <div class="color-section-title"><span>Color</span><div><button id="eyedropper" class="text-tool-button" title="Pick a color from the canvas">⌖</button><label class="text-tool-button" for="customColor">Custom</label><input type="color" id="customColor" value="#6c5ce7" aria-label="Custom color"></div></div>
+          <div class="palette" id="palette"></div>
+          <div class="color-readout"><span class="color-swatch-small" id="colorReadout"></span><span id="colorHex">#252336</span><span class="color-readout-spacer"></span><button class="mini-copy" id="copyColor" title="Copy color">▢</button></div>
+          <div class="pressure-note"><span>◉</span><p>Stylus pressure is used when your device provides it.</p></div>
+        </section>
+        <div class="inspector-footer"><span class="offline-icon">●</span> Offline by design <span class="footer-dot">·</span> No AI</div>
+      </aside>
+    </main>
+  </div>
+
+  <section class="projects-screen hidden" id="projectsScreen">
+    <header class="projects-topbar">
+      <div class="brand-lockup"><div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div><div class="brand-name">anim<span>pro</span></div></div>
+      <div class="projects-top-right"><span class="privacy-chip">LOCAL · NO AI</span><button class="icon-button theme-toggle" id="themeToggleHome" title="Switch theme">☼</button></div>
+    </header>
+    <main class="projects-content">
+      <div class="projects-hero">
+        <div><div class="eyebrow">YOUR CREATIVE SPACE</div><h1>Ideas in motion.</h1><p>A quiet place to sketch, experiment, and make your next frame.</p></div>
+        <button class="button-primary create-project" id="createProject"><span>＋</span> New animation</button>
+        <div class="hero-orbit orbit-one"></div><div class="hero-orbit orbit-two"></div>
+      </div>
+      <div class="projects-toolbar"><div><h2>Recent projects</h2><p>Your work, saved on this device.</p></div><div class="projects-filters"><label class="search-field"><span>⌕</span><input type="search" id="projectSearch" placeholder="Search projects…"></label><button class="sort-button" id="sortProjects">↕ Recent</button></div></div>
+      <div class="project-grid" id="projectGrid"></div>
+    </main>
+  </section>
+
+  <dialog class="export-dialog" id="exportDialog">
+    <form method="dialog" class="dialog-form" id="exportForm">
+      <div class="dialog-head"><div><div class="eyebrow">READY WHEN YOU ARE</div><h2>Export animation</h2><p>Choose a format for <strong>Morning, frame by frame</strong>.</p></div><button class="dialog-close" value="cancel" aria-label="Close">×</button></div>
+      <div class="export-format-grid">
+        <button type="button" class="format-card is-selected" data-format="gif"><span class="format-icon">GIF</span><strong>Animated GIF</strong><small>Easy to share · 12 fps</small></button>
+        <button type="button" class="format-card" data-format="png"><span class="format-icon png-icon">PNG</span><strong>PNG sequence</strong><small>Clean frames · alpha support</small></button>
+        <button type="button" class="format-card format-disabled" data-format="mp4" title="Native encoder not connected"><span class="format-icon video-icon">MP4</span><strong>MP4 video</strong><small>Native encoder needed</small></button>
+        <button type="button" class="format-card format-disabled" data-format="webm" title="Native encoder not connected"><span class="format-icon video-icon">WEBM</span><strong>WebM video</strong><small>Native encoder needed</small></button>
+      </div>
+      <div class="export-options">
+        <label>Resolution <select id="exportResolution"><option value="480">480p</option><option value="720">720p</option><option value="1080" selected>1080p</option><option value="2048">2K</option></select></label>
+        <label>Frame rate <select id="exportFps"><option>6</option><option>8</option><option selected>12</option><option>15</option><option>24</option><option>30</option><option>60</option></select></label>
+      </div>
+      <label class="transparent-option"><span><strong>Transparent background</strong><small>GIF transparency has format limitations.</small></span><input type="checkbox" id="transparentBg"><span class="switch-ui"></span></label>
+      <div class="export-notice" id="exportNotice"><span>i</span><p>This browser preview downloads a PNG sample. The Flutter project includes PNG sequence and GIF rendering. MP4/WebM need a native encoder.</p></div>
+      <div class="dialog-actions"><button class="button-secondary" value="cancel">Cancel</button><button class="button-primary" type="button" id="startExport"><span>↗</span> Render &amp; share</button></div>
+      <div class="export-status" id="exportStatus"></div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
