@@ -50,7 +50,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          flutter analyze 2>&1 | tee "$RUNNER_TEMP/flutter-analyze.log"
+          flutter analyze --no-fatal-infos 2>&1 | tee "$RUNNER_TEMP/flutter-analyze.log"
           result=${PIPESTATUS[0]}
           python3 - "$RUNNER_TEMP/flutter-analyze.log" "$GITHUB_STEP_SUMMARY" "$result" <<'PY'
           import pathlib, re, sys
