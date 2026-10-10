@@ -52,16 +52,22 @@ jobs:
           set +e
           flutter analyze 2>&1 | tee "$RUNNER_TEMP/flutter-analyze.log"
           result=${PIPESTATUS[0]}
-          python3 - "$RUNNER_TEMP/flutter-analyze.log" "$GITHUB_STEP_SUMMARY" <<'PY'
+          python3 - "$RUNNER_TEMP/flutter-analyze.log" "$GITHUB_STEP_SUMMARY" "$result" <<'PY'
           import pathlib, re, sys
           log = pathlib.Path(sys.argv[1]).read_text(errors="replace")
           clean = re.sub(r"\x1b\[[0-9;]*m", "", log)
           with open(sys.argv[2], "a", encoding="utf-8") as summary:
               summary.write("### flutter analyze\n\n```text\n" + clean[-12000:] + "\n```\n")
-          for line in clean.splitlines():
-              if " error • " in line or " warning • " in line:
+          lines = clean.splitlines()
+          for line in lines:
+              if " • " in line:
                   escaped = line.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
-                  print(f"::error::{escaped}")
+                  print(f"::notice title=flutter analyze::{escaped}")
+          if int(sys.argv[3]) != 0:
+              for line in lines[-80:]:
+                  if line.strip():
+                      escaped = line.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+                      print(f"::error title=flutter analyze::{escaped}")
           PY
           exit "$result"
 
@@ -73,16 +79,18 @@ jobs:
           set +e
           flutter test --reporter expanded 2>&1 | tee "$RUNNER_TEMP/flutter-test.log"
           result=${PIPESTATUS[0]}
-          python3 - "$RUNNER_TEMP/flutter-test.log" "$GITHUB_STEP_SUMMARY" <<'PY'
+          python3 - "$RUNNER_TEMP/flutter-test.log" "$GITHUB_STEP_SUMMARY" "$result" <<'PY'
           import pathlib, re, sys
           log = pathlib.Path(sys.argv[1]).read_text(errors="replace")
           clean = re.sub(r"\x1b\[[0-9;]*m", "", log)
           with open(sys.argv[2], "a", encoding="utf-8") as summary:
               summary.write("### flutter test\n\n```text\n" + clean[-12000:] + "\n```\n")
-          for line in clean.splitlines():
-              if any(token in line for token in ("Test failed", "Error:", "Exception:", "NoSuchMethodError", "Expected:")):
-                  escaped = line.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
-                  print(f"::error::{escaped}")
+          lines = clean.splitlines()
+          if int(sys.argv[3]) != 0:
+              for line in lines[-80:]:
+                  if line.strip():
+                      escaped = line.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+                      print(f"::error title=flutter test::{escaped}")
           PY
           exit "$result"
 
@@ -94,16 +102,18 @@ jobs:
           set +e
           flutter build apk --release 2>&1 | tee "$RUNNER_TEMP/flutter-build.log"
           result=${PIPESTATUS[0]}
-          python3 - "$RUNNER_TEMP/flutter-build.log" "$GITHUB_STEP_SUMMARY" <<'PY'
+          python3 - "$RUNNER_TEMP/flutter-build.log" "$GITHUB_STEP_SUMMARY" "$result" <<'PY'
           import pathlib, re, sys
           log = pathlib.Path(sys.argv[1]).read_text(errors="replace")
           clean = re.sub(r"\x1b\[[0-9;]*m", "", log)
           with open(sys.argv[2], "a", encoding="utf-8") as summary:
               summary.write("### flutter build apk --release\n\n```text\n" + clean[-12000:] + "\n```\n")
-          for line in clean.splitlines():
-              if any(token in line for token in ("Error:", "FAILURE:", "Could not", "What went wrong:", "Exception:")):
-                  escaped = line.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
-                  print(f"::error::{escaped}")
+          lines = clean.splitlines()
+          if int(sys.argv[3]) != 0:
+              for line in lines[-100:]:
+                  if line.strip():
+                      escaped = line.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+                      print(f"::error title=flutter build apk::{escaped}")
           PY
           exit "$result"
 
@@ -123,6 +133,6 @@ jobs:
           if [[ "${{ steps.analyze.outcome }}" != "success" || \
                 "${{ steps.tests.outcome }}" != "success" || \
                 "${{ steps.build.outcome }}" != "success" ]]; then
-            echo "::error::At least one Flutter validation/build step failed. See this job's step summary for captured diagnostics."
+            echo "::error::Step outcomes: analyze=${{ steps.analyze.outcome }}, tests=${{ steps.tests.outcome }}, build=${{ steps.build.outcome }}. See this job's step summary for details."
             exit 1
           fi
